@@ -23,3 +23,15 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
+
+class UpdateUser(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+
+    def get_object(self):
+        return self.request.user
+
+    # def update(self, request, *args, **kwargs):
+    #     print(request.data)
+    #     serializer = self.get_serializer(data=request.data)

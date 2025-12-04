@@ -95,7 +95,9 @@ class GroupInfoProductViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """Обновление продукта по ID"""
+        print('update')
         instance = self.get_object()
+        print(instance)
         serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
         serializer.is_valid(raise_exception=True)
         serializer.save()
