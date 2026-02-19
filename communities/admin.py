@@ -14,7 +14,7 @@ class CommunityLinkInline(admin.TabularInline):
 
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "slug", "created_at")
+    list_display = ("id", "name", "slug", "created_at","subscribe_price")
     prepopulated_fields = {"slug": ("name",)}
     inlines = [CommunityPhotoInline, CommunityLinkInline]
 

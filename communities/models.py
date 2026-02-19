@@ -35,6 +35,7 @@ class Community(models.Model):
     community_tags = models.ManyToManyField(CommunityTag,blank=True, related_name='communities')
     short_description = models.CharField("Короткое описание", max_length=500, blank=True)
     long_description = CKEditor5Field("Длинное описание (HTML)", blank=True)
+    subscribe_price = models.IntegerField('Стоимость подписки', help_text='Если 0 то бесплатная',default=0)
 
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
 
