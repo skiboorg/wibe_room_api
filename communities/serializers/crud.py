@@ -30,6 +30,7 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
         model = Community
         fields = [
             "name",
+            "slug",
             "cover",
             "community_tags",
             "short_description",
@@ -113,11 +114,12 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
 
         # if community_links is not None:
         instance.community_links.all().delete()
-        for link_data in community_links:
-            CommunityLink.objects.create(
-                community=instance,
-                title=link_data.get("title"),
-                url=link_data.get("url")
-            )
+        if community_links is not None:
+            for link_data in community_links:
+                CommunityLink.objects.create(
+                    community=instance,
+                    title=link_data.get("title"),
+                    url=link_data.get("url")
+                )
 
         return instance

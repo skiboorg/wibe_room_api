@@ -12,6 +12,7 @@ class InfoProduct(models.Model):
     slug = models.CharField('ЧПУ', max_length=255, blank=True, null=True)
     cover = models.ImageField("Обложка", upload_to="infoproducts/covers/", null=True, blank=True)
     short_description = models.CharField("Короткое описание", max_length=500, blank=True)
+    main_link = models.CharField("ссылка на курс", max_length=500, blank=True, null=True)
     price = models.DecimalField("Стоимость", max_digits=10, decimal_places=2, null=True, blank=True)
     product_info = CKEditor5Field("Большое описание (HTML)", blank=True, null=True)
     product_info_structure = models.JSONField("Сруктура html", blank=True,  null=True)
