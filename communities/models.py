@@ -74,6 +74,23 @@ class CommunityLink(models.Model):
     def __str__(self):
         return f"{self.title} ({self.community})"
 
+class CommunityRule(models.Model):
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="community_rules",
+        verbose_name="Сообщество",
+    )
+    title = models.CharField("Название", max_length=255)
+    text = models.TextField("Опсание")
+
+
+    class Meta:
+        verbose_name = "Правило сообщества"
+        verbose_name_plural = "Правила сообщества"
+
+    def __str__(self):
+        return f"{self.title} ({self.community})"
 
 class CommunityPhoto(models.Model):
     community = models.ForeignKey(
@@ -82,7 +99,7 @@ class CommunityPhoto(models.Model):
         related_name="community_photos",
         verbose_name="Сообщество",
     )
-    image = models.ImageField("Фотография", upload_to="communities/photos/")
+    image = models.ImageField("Фотография", upload_to="communities/photos/", blank=True, null=True)
 
     class Meta:
         verbose_name = "Фото сообщества"
@@ -91,6 +108,21 @@ class CommunityPhoto(models.Model):
     def __str__(self):
         return f"Фото ({self.community})"
 
+class CommunityVideo(models.Model):
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="community_videos",
+        verbose_name="Сообщество",
+    )
+    vk_video_link = models.CharField("Ссылка на ВК видео", max_length=255, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "ВК видео сообщества"
+        verbose_name_plural = "ВК видео сообщества"
+
+    def __str__(self):
+        return f"ВК видео ({self.community})"
 
 class Membership(models.Model):
     """Связь пользователь - сообщество с ролями"""

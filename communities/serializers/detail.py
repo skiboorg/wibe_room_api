@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from communities.models import Community, CommunityPhoto, CommunityLink, Membership
+from communities.models import Community, CommunityPhoto, CommunityLink, Membership,CommunityRule, CommunityVideo
 from django.contrib.auth import get_user_model
 
 
@@ -28,6 +28,16 @@ class CommunityPhotoSerializer(serializers.ModelSerializer):
         model = CommunityPhoto
         fields = ["id", "image"]
 
+class CommunityVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommunityVideo
+        fields = ["id", "vk_video_link"]
+
+class CommunityRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommunityRule
+        fields = ["title", "text"]
+
 
 class CommunityLinkSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,7 +56,8 @@ class CommunityDetailSerializer(serializers.ModelSerializer):
     first_members = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
     is_member = serializers.SerializerMethodField()
-
+    community_rules = CommunityRuleSerializer(many=True, read_only=True)
+    community_videos = CommunityVideoSerializer(many=True, read_only=True)
     class Meta:
         model = Community
         fields = [
@@ -60,6 +71,8 @@ class CommunityDetailSerializer(serializers.ModelSerializer):
             "community_links",
             "community_tags",
             "members_count",
+            "community_rules",
+            "community_videos",
             "first_members",
             "is_owner",
             "is_member",

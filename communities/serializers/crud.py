@@ -1,7 +1,8 @@
 import json
 
 from rest_framework import serializers
-from communities.models import Community, CommunityPhoto, CommunityLink, CommunityTag, Membership
+from communities.models import Community, CommunityPhoto, CommunityLink, CommunityTag, Membership, CommunityRule, \
+    CommunityVideo
 
 
 class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
@@ -16,6 +17,17 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
         write_only=True
     )
     community_links = serializers.ListField(
+        child=serializers.CharField(),  # ✅ Изменили на CharField
+        required=False,
+        write_only=True
+    )
+
+    community_rules = serializers.ListField(
+        child=serializers.CharField(),  # ✅ Изменили на CharField
+        required=False,
+        write_only=True
+    )
+    community_videos = serializers.ListField(
         child=serializers.CharField(),  # ✅ Изменили на CharField
         required=False,
         write_only=True
@@ -37,6 +49,8 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
             "long_description",
             "community_photos",
             "community_links",
+            "community_rules",
+            "community_videos",
             "photos_to_delete",
         ]
 
@@ -64,7 +78,8 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
         community_photos = validated_data.pop("community_photos", [])
         community_links = validated_data.pop("community_links", [])  # Теперь это уже словари
         community_tags = validated_data.pop("community_tags", [])
-
+        community_rules = validated_data.pop("community_rules", [])
+        community_videos = validated_data.pop("community_videos", [])
         community = Community.objects.create(**validated_data)
 
         # Добавляем теги
@@ -81,6 +96,25 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
                 title=link_data.get("title"),
                 url=link_data.get("url")
             )
+        for rule_data in community_rules:
+            if isinstance(rule_data, str):
+                rule_data = json.loads(rule_data)
+            CommunityRule.objects.create(
+                community=community,
+                title=rule_data.get("title"),
+                text=rule_data.get("text")
+            )
+
+        if community_videos is not None:
+            for data in community_videos:
+                if isinstance(data, str):
+                    data = json.loads(data)
+
+                CommunityVideo.objects.create(
+                    community=community,
+                    vk_video_link=data.get("vk_video_link"),
+
+                )
 
         # Создаем membership для создателя
         Membership.objects.create(
@@ -96,6 +130,8 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
         community_photos = validated_data.pop("community_photos", None)
         community_links = validated_data.pop("community_links", None)
         community_tags = validated_data.pop("community_tags", None)
+        community_rules = validated_data.pop("community_rules", [])
+        community_videos = validated_data.pop("community_videos", [])
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -114,12 +150,37 @@ class CommunityCreateUpdateSerializer(serializers.ModelSerializer):
 
         # if community_links is not None:
         instance.community_links.all().delete()
+        instance.community_rules.all().delete()
+        instance.community_videos.all().delete()
+
         if community_links is not None:
             for link_data in community_links:
                 CommunityLink.objects.create(
                     community=instance,
                     title=link_data.get("title"),
                     url=link_data.get("url")
+                )
+        if community_rules is not None:
+            print(community_rules)
+            for rule_data in community_rules:
+                if isinstance(rule_data, str):
+                    rule_data = json.loads(rule_data)
+
+                CommunityRule.objects.create(
+                    community=instance,
+                    title=rule_data.get("title"),
+                    text=rule_data.get("text")
+                )
+
+        if community_videos is not None:
+            for data in community_videos:
+                if isinstance(data, str):
+                    data = json.loads(data)
+
+                CommunityVideo.objects.create(
+                    community=instance,
+                    vk_video_link=data.get("vk_video_link"),
+
                 )
 
         return instance

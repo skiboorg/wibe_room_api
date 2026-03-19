@@ -1,5 +1,6 @@
 from django.contrib import admin
-from communities.models import Community, CommunityPhoto, CommunityLink, Membership, CommunityTag
+from communities.models import Community, CommunityPhoto, CommunityLink, Membership, CommunityTag, CommunityRule, \
+    CommunityVideo
 
 
 class CommunityPhotoInline(admin.TabularInline):
@@ -11,12 +12,19 @@ class CommunityLinkInline(admin.TabularInline):
     model = CommunityLink
     extra = 1
 
+class CommunityRuleInline(admin.TabularInline):
+    model = CommunityRule
+    extra = 1
+
+class CommunityVideoInline(admin.TabularInline):
+    model = CommunityVideo
+    extra = 1
 
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "slug", "created_at","subscribe_price")
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [CommunityPhotoInline, CommunityLinkInline]
+    inlines = [CommunityPhotoInline, CommunityLinkInline,CommunityRuleInline,CommunityVideoInline]
 
 
 @admin.register(Membership)

@@ -1,19 +1,28 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import GroupTagViewSet, GroupPostViewSet
+from .views import GroupTagViewSet, GroupPostViewSet, CommentViewSet
 
 router = DefaultRouter()
-# Регистрируем теги группы
+
+# Теги группы
 router.register(
     r'communities/(?P<slug>[-\w]+)/tags',
     GroupTagViewSet,
     basename='group-tags'
 )
-# Регистрируем посты группы
+
+# Посты группы
 router.register(
     r'communities/(?P<slug>[-\w]+)/posts',
     GroupPostViewSet,
     basename='group-posts'
+)
+
+# Операции с конкретным комментарием (редактирование, удаление, реакции)
+router.register(
+    r'comments',
+    CommentViewSet,
+    basename='comments'
 )
 
 urlpatterns = [

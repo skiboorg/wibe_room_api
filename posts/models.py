@@ -8,6 +8,7 @@ import string
 
 User = settings.AUTH_USER_MODEL
 
+
 class Tag(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE, verbose_name="Группа", related_name="tags")
     name = models.CharField("Тэг", max_length=100)
@@ -20,7 +21,6 @@ class Tag(models.Model):
             self.slug = f'{base_slug}-{"".join(random.choices(string.ascii_letters + string.digits, k=3))}'
         elif not self.slug:
             self.slug = base_slug
-
         super().save(*args, **kwargs)
 
     class Meta:
@@ -30,7 +30,9 @@ class Tag(models.Model):
     def __str__(self):
         return f"{self.name} ({self.community})"
 
+
 class Post(models.Model):
+    views = models.IntegerField(default=0, null=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, verbose_name="ID группы", related_name="posts")
     post_tags = models.ManyToManyField(Tag, verbose_name="Теги", blank=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
@@ -47,15 +49,34 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.title} ({self.community})"
 
+
 class PostPhoto(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="photos", verbose_name="Фото")
     image = models.ImageField("Фото", upload_to="posts/photos/")
 
+
 class PostComment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments", verbose_name="Комментарий")
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies",
+        verbose_name="Родительский комментарий"
+    )
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Автор")
     text = models.TextField("Текст")
+    image = models.ImageField("Фото", upload_to="posts/comments/", null=True, blank=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
+
+    def __str__(self):
+        return f"Комментарий от {self.author} к посту {self.post_id}"
+
 
 class ReactionType(models.TextChoices):
     LIKE = "like", "Лайк"
@@ -64,7 +85,26 @@ class ReactionType(models.TextChoices):
     SAD = "sad", "Печаль"
     ANGRY = "angry", "Злой"
 
+
 class PostReaction(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions", verbose_name="Реакция")
     reaction = models.CharField("Реакция", max_length=20, choices=ReactionType.choices)
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Автор")
+
+    class Meta:
+        verbose_name = "Реакция на пост"
+        verbose_name_plural = "Реакции на посты"
+        # один пользователь — одна реакция на пост
+        unique_together = ("post", "author")
+
+
+class CommentReaction(models.Model):
+    comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name="reactions", verbose_name="Комментарий")
+    reaction = models.CharField("Реакция", max_length=20, choices=ReactionType.choices)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Автор")
+
+    class Meta:
+        verbose_name = "Реакция на комментарий"
+        verbose_name_plural = "Реакции на комментарии"
+        # один пользователь — одна реакция на комментарий
+        unique_together = ("comment", "author")
