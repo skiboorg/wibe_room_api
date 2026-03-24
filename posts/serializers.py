@@ -158,7 +158,7 @@ class PostSerializer(serializers.ModelSerializer):
             "id", "community", "post_tags", "date", "added_by",
             "title", "text", "is_pinned", "photos", "vk_video_link",
             "is_own", "reactions", "reactions_count", "my_reaction",
-            "comments_count",
+            "comments_count", "views",
         )
         read_only_fields = ("date", "added_by")
 
@@ -264,3 +264,69 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return PostSerializer(instance, context=self.context).data
+
+
+class PostShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        from .models import Post
+        model = Post
+        fields = ("id", "title")
+
+
+class CommunityShortSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    slug = serializers.CharField()
+    cover = serializers.ImageField()
+
+
+class PostCommentWithContextSerializer(serializers.ModelSerializer):
+    author = UserShortSerializer(read_only=True)
+    reactions_count = serializers.SerializerMethodField()
+    my_reaction = serializers.SerializerMethodField()
+    post_title = serializers.SerializerMethodField()
+    post_id = serializers.SerializerMethodField()
+    community_name = serializers.SerializerMethodField()
+    community_slug = serializers.SerializerMethodField()
+    community_cover = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PostComment
+        fields = (
+            "id", "text", "image", "date", "author",
+            "reactions_count", "my_reaction",
+            "post_id", "post_title",
+            "community_name", "community_slug", "community_cover",
+        )
+
+    def get_reactions_count(self, obj):
+        counts = {}
+        for r in obj.reactions.all():
+            counts[r.reaction] = counts.get(r.reaction, 0) + 1
+        return counts
+
+    def get_my_reaction(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            r = obj.reactions.filter(author=request.user).first()
+            return r.reaction if r else None
+        return None
+
+    def get_post_id(self, obj):
+        return obj.post_id
+
+    def get_post_title(self, obj):
+        return obj.post.title or obj.post.text[:20]
+
+    def get_community_name(self, obj):
+        return obj.post.community.name
+
+    def get_community_slug(self, obj):
+        return obj.post.community.slug
+
+    def get_community_cover(self, obj):
+        request = self.context.get("request")
+        cover = obj.post.community.cover
+        if cover and request:
+            return request.build_absolute_uri(cover.url)
+        return None

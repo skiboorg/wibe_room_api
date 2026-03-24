@@ -37,7 +37,7 @@ class Post(models.Model):
     post_tags = models.ManyToManyField(Tag, verbose_name="Теги", blank=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
     added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Кто добавил", related_name="added_posts")
-    title = models.CharField("Заголовок", max_length=255)
+    title = models.CharField("Заголовок", blank=True, null=True, max_length=255)
     vk_video_link = models.CharField("Ссылка на ВК видео", max_length=255, blank=True, null=True)
     text = CKEditor5Field("Текст")
     is_pinned = models.BooleanField(default=False, null=False)

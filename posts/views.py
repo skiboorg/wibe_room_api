@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from django.db.models import Q
+from django.db.models import Q, F
 from django.shortcuts import get_object_or_404
 
 from communities.models import Community
@@ -94,6 +94,18 @@ class GroupPostViewSet(viewsets.ModelViewSet):
             "next": self.paginator.get_next_link() if page else None,
             "previous": self.paginator.get_previous_link() if page else None,
         })
+
+    # ── Просмотры ─────────────────────────────────────────────
+
+    @action(detail=True, methods=["post"], url_path="view")
+    def track_view(self, request, slug=None, id=None):
+        """
+        POST /communities/{slug}/posts/{id}/view/
+        Инкрементирует счётчик просмотров. Вызывается с фронта при открытии диалога.
+        Не требует авторизации — считаем всех.
+        """
+        Post.objects.filter(pk=self.get_object().pk).update(views=F('views') + 1)
+        return Response(status=204)
 
     # ── Реакции на пост ──────────────────────────────────────────
 
