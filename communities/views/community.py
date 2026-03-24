@@ -91,6 +91,13 @@ class CommunityViewSet(viewsets.ModelViewSet):
         Membership.objects.create(user=request.user, community=obj)
         return Response(status=200)
 
+    @action(detail=True, methods=["post"], url_path="leave")
+    def leave(self, request, slug=None):
+        obj = self.get_object()
+        deleted, _ = Membership.objects.filter(user=request.user, community=obj, is_owner=False).delete()
+        if deleted:
+            return Response(status=200)
+        return Response({"detail": "Вы не являетесь участником или являетесь владельцем"}, status=400)
 
 def create(self, request, *args, **kwargs):
         print("=== REQUEST DATA ===")
