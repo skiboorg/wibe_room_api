@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'communities.apps.CommunitiesConfig',
     'posts.apps.PostsConfig',
     'events.apps.EventsConfig',
-    'infoproducts.apps.InfoproductsConfig'
+    'infoproducts.apps.InfoproductsConfig',
+    'favorites.apps.FavoritesConfig'
 ]
 
 MIDDLEWARE = [

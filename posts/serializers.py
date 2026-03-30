@@ -58,11 +58,12 @@ class PostCommentReplySerializer(serializers.ModelSerializer):
     reactions_count = serializers.SerializerMethodField()
     my_reaction = serializers.SerializerMethodField()
     is_own = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
 
     class Meta:
         model = PostComment
         fields = ("id", "post", "parent", "author", "text", "image", "date",
-                  "reactions", "reactions_count", "my_reaction", "is_own")
+                  "reactions", "reactions_count", "my_reaction", "is_own", "can_delete")
         read_only_fields = ("date",)
 
     def get_reactions_count(self, obj):
@@ -83,6 +84,17 @@ class PostCommentReplySerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.author == request.user
         return False
+
+    def get_can_delete(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        if obj.author == request.user or request.user.is_staff:
+            return True
+        from communities.models import Membership
+        return Membership.objects.filter(
+            user=request.user, community=obj.post.community, is_owner=True
+        ).exists()
 
 
 class PostCommentSerializer(serializers.ModelSerializer):
@@ -92,11 +104,12 @@ class PostCommentSerializer(serializers.ModelSerializer):
     reactions_count = serializers.SerializerMethodField()
     my_reaction = serializers.SerializerMethodField()
     is_own = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
 
     class Meta:
         model = PostComment
         fields = ("id", "post", "parent", "author", "text", "image", "date",
-                  "replies", "reactions", "reactions_count", "my_reaction", "is_own")
+                  "replies", "reactions", "reactions_count", "my_reaction", "is_own", "can_delete")
         read_only_fields = ("date",)
 
     def get_reactions_count(self, obj):
@@ -117,6 +130,17 @@ class PostCommentSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.author == request.user
         return False
+
+    def get_can_delete(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        if obj.author == request.user or request.user.is_staff:
+            return True
+        from communities.models import Membership
+        return Membership.objects.filter(
+            user=request.user, community=obj.post.community, is_owner=True
+        ).exists()
 
 
 class PostCommentCreateSerializer(serializers.ModelSerializer):
@@ -266,6 +290,10 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         return PostSerializer(instance, context=self.context).data
 
 
+# ──────────────────────────────────────────────
+# Комментарий с контекстом поста и сообщества (для страницы профиля)
+# ──────────────────────────────────────────────
+
 class PostShortSerializer(serializers.ModelSerializer):
     class Meta:
         from .models import Post
@@ -316,7 +344,7 @@ class PostCommentWithContextSerializer(serializers.ModelSerializer):
         return obj.post_id
 
     def get_post_title(self, obj):
-        return obj.post.title or obj.post.text[:20]
+        return obj.post.title
 
     def get_community_name(self, obj):
         return obj.post.community.name

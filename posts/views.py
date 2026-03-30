@@ -198,7 +198,14 @@ class CommentViewSet(viewsets.GenericViewSet):
 
     def destroy(self, request, pk=None):
         comment = get_object_or_404(PostComment, pk=pk)
-        if comment.author != request.user and not request.user.is_staff:
+        # Разрешаем удалять: автору, is_staff, или владельцу сообщества
+        from communities.models import Membership
+        is_community_owner = Membership.objects.filter(
+            user=request.user,
+            community=comment.post.community,
+            is_owner=True
+        ).exists()
+        if comment.author != request.user and not request.user.is_staff and not is_community_owner:
             return Response({"detail": "Нет доступа"}, status=403)
         comment.delete()
         return Response(status=204)

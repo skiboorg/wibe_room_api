@@ -19,7 +19,7 @@ urlpatterns = [
 
       # events
     path("api/", include("events.urls")),
-
+    path('api/', include('favorites.urls')),
       # infoproducts
     path("api/", include("infoproducts.urls")),
 
